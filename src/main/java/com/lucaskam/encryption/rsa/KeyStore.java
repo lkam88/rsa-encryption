@@ -19,10 +19,8 @@ public class KeyStore {
     public static final String PRIVATE_KEY_FORMAT = BEGIN_PRIVATE_KEY + "%s" + END_PRIVATE_KEY;
     public static final String PUBLIC_KEY_FORMAT = BEGIN_PUBLIC_KEY + "%s" + END_PUBLIC_KEY;
 
-    public KeyEncoder keyEncoder;
-
+    private KeyEncoder keyEncoder;
     private File privateKeyFile;
-
     private File publicKeyFile;
 
     public KeyStore(KeyEncoder keyEncoder, File privateKeyFile, File publicKeyFile) {
@@ -31,10 +29,22 @@ public class KeyStore {
         this.publicKeyFile = publicKeyFile;
     }
 
+    /**
+     * Returns whether or not a private and public key have already been generated on to the file system.
+     *
+     * @return Boolean that represents if the private and public keys are on the file system.
+     */
     public boolean keysGenerated() {
         return privateKeyFile.exists() && publicKeyFile.exists();
     }
 
+    /**
+     * Reads the private and public keys from the file system.
+     *
+     * @return A pair of the private and public keys that exist on the file system.
+     * @throws KeyStoreException Represents an error while trying to read keys from the file system, such as the Java process not having the correct
+     *                           permissions
+     */
     public KeyPair readKeys() throws KeyStoreException {
         try {
             String privateKeyString = readFile(privateKeyFile, true);
@@ -51,6 +61,24 @@ public class KeyStore {
         }
     }
 
+    /**
+     * Writes a pair of private and public keys to the file system.
+     *
+     * @param keyPair The private and public keys that are to be written to the file system.
+     * @throws KeyStoreException Represents an error while trying to write keys to the file system, such as the Java process not having the correct permissions
+     */
+    public void writeKeys(KeyPair keyPair) throws KeyStoreException {
+        try {
+            String privateKeyString = keyEncoder.encodePrivateKey(keyPair.getPrivateKey());
+            String publicKeyString = keyEncoder.encodePublicKey(keyPair.getPublicKey());
+
+            writeFile(privateKeyString, privateKeyFile, PRIVATE_KEY_FORMAT);
+            writeFile(publicKeyString, publicKeyFile, PUBLIC_KEY_FORMAT);
+        } catch (Exception e) {
+            throw new KeyStoreException("Unable write keys to file system.", e);
+        }
+    }
+
     private String readFile(File keyFile, boolean privateKey) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(keyFile.getPath()));
         String formattedKey = new String(bytes);
@@ -62,20 +90,6 @@ public class KeyStore {
             finalKey = formattedKey.replace(BEGIN_PUBLIC_KEY, "").replace(END_PUBLIC_KEY, "");
         }
         return finalKey;
-    }
-
-    public KeyPair writeKeys(KeyPair keyPair) throws KeyStoreException {
-        try {
-            String privateKeyString = keyEncoder.encodePrivateKey(keyPair.getPrivateKey());
-            String publicKeyString = keyEncoder.encodePublicKey(keyPair.getPublicKey());
-
-            writeFile(privateKeyString, privateKeyFile, PRIVATE_KEY_FORMAT);
-            writeFile(publicKeyString, publicKeyFile, PUBLIC_KEY_FORMAT);
-        } catch (Exception e) {
-            throw new KeyStoreException("Unable write keys to file system.", e);
-        }
-
-        return null;
     }
 
     private void writeFile(String keyString, File keyFile, String format) throws IOException {
