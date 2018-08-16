@@ -11,6 +11,8 @@ import java.io.File;
 import java.math.BigInteger;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,16 +44,14 @@ public class RsaMessageEncrypterTest {
         Key publicKey = mock(Key.class);
         when(keyPair.getPublicKey()).thenReturn(publicKey);
 
-        BigInteger hashedMessage = mock(BigInteger.class);
         BigInteger encryptedMessage = mock(BigInteger.class);
         
         when(keyStore.keysGenerated()).thenReturn(true);
         when(keyStore.readKeys()).thenReturn(keyPair);
         
         when(keyEncoder.encodePublicKey(publicKey)).thenReturn("encodedPublicKey");
-        
-        when(messageEncoder.hashMessage(testMessage)).thenReturn(hashedMessage);
-        when(rsaAlgorithm.encrypt(hashedMessage, publicKey)).thenReturn(encryptedMessage);
+
+        when(rsaAlgorithm.encrypt(any(BigInteger.class), eq(publicKey))).thenReturn(encryptedMessage);
         when(messageEncoder.encodeEncryptedMessage(encryptedMessage)).thenReturn("encryptedSignature");
         
         Response response = rsaMessageEncrypter.encryptMessage(testMessage);
@@ -68,7 +68,6 @@ public class RsaMessageEncrypterTest {
         Key publicKey = mock(Key.class);
         when(keyPair.getPublicKey()).thenReturn(publicKey);
 
-        BigInteger hashedMessage = mock(BigInteger.class);
         BigInteger encryptedMessage = mock(BigInteger.class);
 
         when(keyStore.keysGenerated()).thenReturn(false);
@@ -76,8 +75,7 @@ public class RsaMessageEncrypterTest {
 
         when(keyEncoder.encodePublicKey(publicKey)).thenReturn("encodedPublicKey");
 
-        when(messageEncoder.hashMessage(testMessage)).thenReturn(hashedMessage);
-        when(rsaAlgorithm.encrypt(hashedMessage, publicKey)).thenReturn(encryptedMessage);
+        when(rsaAlgorithm.encrypt(any(BigInteger.class), eq(publicKey))).thenReturn(encryptedMessage);
         when(messageEncoder.encodeEncryptedMessage(encryptedMessage)).thenReturn("encryptedSignature");
 
         Response response = rsaMessageEncrypter.encryptMessage(testMessage);
@@ -96,5 +94,34 @@ public class RsaMessageEncrypterTest {
     @Test(expected = IllegalArgumentException.class)
     public void testEncryptMessage_EmptyMessage() throws Exception {
         rsaMessageEncrypter.encryptMessage("");
+    }
+
+    @Test
+    public void testEncryptMessage() throws Exception {
+        String testMessage = "testMessage";
+
+        when(keyEncoder.decodePrivateKey(any())).thenCallRealMethod();
+        when(keyEncoder.decodePublicKey(any())).thenCallRealMethod();
+
+        Key publicKey = keyEncoder.decodePublicKey(TestKeys.TEST_PUBLIC_KEY);
+        Key privateKey = keyEncoder.decodePrivateKey(TestKeys.TEST_PRIVATE_KEY);
+
+        KeyPair keyPair = KeyPair.builder()
+                .publicKey(publicKey)
+                .privateKey(privateKey)
+                .build();
+        when(keyEncoder.encodePublicKey(any())).thenCallRealMethod();
+        when(keyStore.keysGenerated()).thenReturn(true);
+        when(keyStore.readKeys()).thenReturn(keyPair);
+        when(rsaAlgorithm.encrypt(any(), any())).thenCallRealMethod();
+        when(rsaAlgorithm.decrypt(any(), any())).thenCallRealMethod();
+        when(messageEncoder.encodeEncryptedMessage(any())).thenCallRealMethod();
+        when(messageEncoder.decodeEncryptedMessage(any())).thenCallRealMethod();
+
+        Response response = rsaMessageEncrypter.encryptMessage(testMessage);
+
+        String result = rsaMessageEncrypter.decryptMessage(response.getSignature());
+
+        assertEquals(testMessage, result);
     }
 }

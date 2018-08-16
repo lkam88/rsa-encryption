@@ -27,7 +27,7 @@ You can run the application by running the Java application from the commandline
 
 If you're at the project root,
 ```
-java -jar target/my-awesome-app.jar "Hello, World!"
+java -jar target/rsa-encrpytion.jar "Hello, World!"
 ```
 
 ## Running the tests
@@ -35,6 +35,19 @@ You can run the tests for continuous integration using maven.
 
 ```
 mvn clean test
+```
+
+## Docker
+This application comes with a Docker file to easily run the application with minimum setup.  First you have to build a docker image.
+
+```
+docker build . -t rsa-encrpytion
+```
+
+Then you can run the application using docker and passing the message as command line argument.
+
+```
+docker run rsa-encrpytion "Hello, World!"
 ```
 
 ## License

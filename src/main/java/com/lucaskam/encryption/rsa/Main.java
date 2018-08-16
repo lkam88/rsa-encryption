@@ -15,6 +15,10 @@ public class Main {
      * file system, then the program will generate a pair of 512 bit RSA private and public keys.
      */
     public static void main(String[] args) throws Exception {
+        if (args.length < 1) {
+            throw new IllegalArgumentException("Message to encrypt not provided");
+        }
+
         String message = args[0];
 
         RandomNumberGenerator randomNumberGenerator = new RandomNumberGenerator(new Random());

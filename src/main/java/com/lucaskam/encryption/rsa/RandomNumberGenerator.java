@@ -12,7 +12,7 @@ public class RandomNumberGenerator {
     }
 
     /**
-     * Generates a random prime number with a 512 bit length.  The number is not guaranteed to be prime, but has an extremely of probability of being a prime
+     * Generates a random prime number with a 512 bit length.  The number is not guaranteed to be prime, but has an extremely high probability of being a prime
      * number.
      *
      * @return An 512 bit integer that is probably a prime number.

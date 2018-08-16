@@ -23,7 +23,7 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <finalName>my-awesome-app</finalName>
+                    <finalName>rsa-encryption</finalName>
                     <attach>false</attach>
                     <appendAssemblyId>false</appendAssemblyId>
                     <descriptors>

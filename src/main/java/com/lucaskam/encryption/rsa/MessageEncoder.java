@@ -1,30 +1,10 @@
 package com.lucaskam.encryption.rsa;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 public class MessageEncoder {
-    /**
-     * Takes a string, hashes it using SHA-256, and returns an integer representation of the String.
-     *
-     * @param message Messaged to be hashed.
-     * @return An integer representing a hash of the passed message.
-     */
-    public BigInteger hashMessage(String message) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(message.getBytes(StandardCharsets.UTF_16));
-            return new BigInteger(hash);
-        } catch (NoSuchAlgorithmException e) {
-            // This shouldn't happen but we have to handle it anyways.
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
     /**
      * Takes the integer result of an RSA encrypted message and returns a Base64 String representation of the encrypted message.
      *
@@ -33,6 +13,22 @@ public class MessageEncoder {
      */
     public String encodeEncryptedMessage(BigInteger encryptedMessage) {
         byte[] bytes = encryptedMessage.toByteArray();
-        return Base64.getEncoder().encodeToString(bytes);
+        try {
+            return new String(Base64.getEncoder().encode(bytes), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public BigInteger decodeEncryptedMessage(String encryptedMessage) throws UnsupportedEncodingException {
+        try {
+            byte[] bytes = encryptedMessage.getBytes("UTF-8");
+            byte[] decode = Base64.getDecoder().decode(bytes);
+            return new BigInteger(decode);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 }
